@@ -1,0 +1,207 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="chessground.base.min.css">
+    <!--link rel="stylesheet" href="chessground.brown.css">
+    <link rel="stylesheet" href="chessground.cburnett.css"-->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+      }
+
+      .title {
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #333;
+        font-size: 30px;
+      }
+
+      #board {
+        width: 550px;
+        height: 0;
+        padding-bottom: 550px;
+        margin: 20px 0;
+        border: 1px solid #333; 
+      }
+
+      #status {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #666;
+        text-shadow: 1px 1px #fff;
+      }
+
+      button {
+        background: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background: #2980b9;
+      }
+
+      button:active {
+        background: #2980b9;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);  
+        transform: translateY(2px);
+      }
+
+      #promotion button {
+        display: inline-block;
+        margin: 0 10px;
+      }
+
+      #promotion button img {
+        height: 50px;
+      }
+
+      a {
+        color: #3498db;
+        text-decoration: none;
+        border-bottom: 1px solid #3498db;
+      }
+
+      #chatiframe1container {
+        display: block;
+        width: 30%;
+        height: 550px;
+
+
+
+        display: none;
+      }
+
+      #chatiframe2container {
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        #status {
+          font-size: 18px;
+        }
+
+        button {
+          padding: 6px 12px;
+          font-size: 14px;
+        }
+
+        #board {
+            width: 95%;
+            padding-bottom: 95%;
+        }
+
+        #chatiframe1container {
+            display: none;
+        }
+
+        #chatiframe2container {
+          display: block;
+          width: 100%;
+          height: 400px;
+
+
+
+          display: none;
+        }
+    }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="chessground.min.js"></script>
+    <script src="chess.js"></script>
+js"></script>
+    <script src="cordova.js"></script>
+    <script src="socket.io.min.js"></script>
+  </head>
+  <body>
+    <div class="title">OXADREZ</div>
+    <br/>
+    <div id="status">Procurando Atualizações do app</div>
+    <br/>
+    <br/>
+
+    <div style="display: flex; font-size: 15px; justify-content: center">Usuário (1000)</div>
+    <div id="piececaptured0" style="font-size: 30px; text-align: center;">|</div>
+    <div style="display: flex; flex-grow: 1; justify-content: center;"><div id="board"></div><div id="chatiframe1container"><iframe style="width: 100%; height:100%;" src=""></iframe></div></div>
+    <div style="display: flex; font-size: 15px;; justify-content: center;">Você (1000)</div>
+    <div id="piececaptured1" style="font-size: 30px; text-align: center;">|</div>
+    <br/>
+    <br/>
+    <div id="chatiframe2container"><iframe style="width: 100%; height: 100%;" src=""></iframe></div>
+    <!--button id="create-room">Create Room</button> <br/> <br/>
+    <button id="join-room">Join Room</button> <br/> <br/-->
+
+    <div id="promotion" style="display: none;">
+
+    </div>
+    <script>
+        document.addEventListener('deviceready', function() {
+
+        });
+    </script>
+    <script src="chesslogic.js"></script>
+    <script>
+
+        function onUserMoveEvent(move) {
+            setTimeout(() => {
+                game.move(move);
+                botMove(game.fen());
+            }, 500);
+        }
+
+        StartGame('w');
+
+        game = new Chess("8/8/8/8/4k3/8/8/2N1KB2 w - - 0 1");
+        board.set({fen: "8/8/8/8/4k3/8/8/2N1KB2 w - - 0 1"});
+
+
+      board.set({movable: {dests: getDests()}});
+
+        setTimeout(() => {
+            if (yourturn == 'b') {
+                botMove(game.fen());
+            }
+        }, 500);
+
+
+        const STOCKFISH_DEPTH = 20;
+        var stockfish = new Worker('./stockfish.min.js');
+        const STOCKFISH_SKILL_LEVEL = 20;
+
+
+        // Função para retornar movimento
+        function botMove(position) {
+            stockfish.postMessage('setoption name Skill Level value ' + STOCKFISH_SKILL_LEVEL);
+            stockfish.postMessage('position fen ' + position);
+            stockfish.postMessage('go depth ' + STOCKFISH_DEPTH);
+
+        }
+        stockfish.onmessage = e => {
+            if (e.data.includes('bestmove ')) {
+                var bestMove = e.data.split(' ')[1];
+                const moveResult = game.move({
+                    from: bestMove[0] + bestMove[1],
+                    to: bestMove[2] + bestMove[3],
+                    promotion: 'q',
+                });
+
+                board.set({lastMove: [moveResult.from, moveResult.to]});
+
+                game.undo();
+
+                moveMade(moveResult.san);
+            }
+        };
+
+    </script>
+
+  </body>
+</html>

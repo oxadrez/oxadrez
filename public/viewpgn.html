@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="lichess-pgn-viewer.min.css">
+    <style>
+        .title {
+            font-size: 40px;
+        }
+        .whiteperformace {
+            width: 95%;
+            height: 200px;
+        }
+    </style>
+    <script src="chess.js"></script>
+    <script src="Chart.js"></script>
+</head>
+<body>
+    <div class="title">OXADREZ</div>
+    <div class="viewers">
+        <div><div></div></div>
+        <div><div class="previous-class"></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+        <div><div></div></div>
+    </div>
+    <br/>
+    <button style="width: 100%; font-size: 32px;" onclick="if ((moveindex - 1) >= -1) {pgnViewerBoard.goTo('prev'); moveindex -= 1; showeval();}else{}">Anterior</button>
+    <br/>
+    <br/>
+    <button style="width: 100%; font-size: 32px;" onclick="if ((moveindex + 1) < analysisboard.history().length) {pgnViewerBoard.goTo('next'); moveindex += 1; showeval();}else{}">Próximo</button>
+    <div id="movedetails"></div>
+    <div id="moves"></div>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <div>Performace: </div>
+    <canvas id="whiteeval"></canvas>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
+    <textarea id="pgn"></textarea>
+    <button onclick="switchPgn(document.getElementById('pgn').value);">VER PGN</button>
+    <script src="lichess-pgn-viewer.min.js"></script>
+    <script>
+        var bookMoves = `e4 e5 - Abertura do Peão do Rei|e4 e5 Nf3 - Abertura Vienense|e4 e5 Nf3 Nc6 - Abertura de Cavalheiros|e4 e5 Nf3 Nc6 Bb5 - Abertura Ruy López|e4 e5 Nf3 Nc6 Bb5 a6 - Variante Morphy da Ruy López|e4 e5 Nf3 Nc6 Bb5 a6 Ba4 - Abertura Schliemann|e4 c5 - Abertura Siciliana|e4 c5 Nf3 - Abertura Siciliana Variante Fechada|e4 c5 Nf3 d6 - Abertura Siciliana Variante Najdorf|e4 c5 Nf3 e6 - Abertura Siciliana Variante Scheveningen|d4 Nf6 c4 - Defesa Índia do Rei|d4 Nf6 c4 g6 - Defesa Índia do Rei, Variante Benoni|d4 Nf6 c4 e6 - Defesa Índia do Rei, Variante Nimzo-Índia|d4 Nf6 c4 g6 Nf3 Bg7 - Defesa Índia do Rei, Variante Catalã|d4 d5 - Defesa Eslava|d4 d5 c4 - Gambito da Dama Aceito|d4 d5 c4 e6 - Defesa Semi-Eslava|d4 d5 c4 c6 - Defesa Eslava Variante Checa|d4 Nf6 c4 c5 - Defesa Siciliana Variante Alapin|d4 f5 - Defesa Holandesa|d4 f5 c4 - Gambito Staunton|e4 c6 - Defesa Caro-Kann|e4 c6 d4 d5 - Defesa Caro-Kann Variante Panov|e4 g6 - Defesa Moderna|d4 f6 - Defesa Alekhine|Nf3 d5 - Abertura Reti|c4 - Abertura Inglesa|c4 e5 - Abertura Inglesa, Variante Reversa|c4 e5 Nc3 - Abertura Inglesa, Variante Simetríca|c4 c5 Nf3 - Defesa Siciliana|c4 c5 g3 - Abertura Catalã|g3 d5 - Defesa Catalã|g3 g6 - Defesa Moderna Benoni|d3 d5 - Abertura Colle|Nf3 d5 - Defesa Escandinava|Nf3 f5 - Contra-Gambito Alekhine|b3 - Abertura Réti|b4 - Gambito da Dama|e3 - Abertura Larsen|f4 - Gambito do Rei|f4 d5 - Gambito do Rei Aceito|f4 e5 - Gambito do Rei, Variante Khan|f4 d6 - Defesa Philidor|f4 Nf6 - Contragambito Alekhine|f4 g6 - Defesa Moderna, Variante Pirc`.split("|")
+        var LichessPgnViewer = Ts;
+        
+        var pgnViewer = document.getElementsByClassName('viewers')[0];
+
+        var pieceTheme = "lichess";
+        var localStorage = window.localStorage;
+        var game = new Chess();
+
+        if (localStorage.getItem('pieceTheme')) {
+            pieceTheme = localStorage.getItem('pieceTheme');
+        }
+        var matchpgn = localStorage.getItem('lastGamePgn');
+
+        if (!matchpgn) {
+            matchpgn = `[Event "18th DSB Kongress"]
+            [Site "Breslau GER"]
+            [Date "1912.07.20"]
+            [Round "6"]
+            [White "Stefan Levitsky"]
+            [Black "Frank James Marshall"]
+            [Result "0-1"]
+            [EventDate "1912.07.15"]
+            [ECO "B23"]
+            [WhiteElo "?"]
+            [BlackElo "?"]
+            [PlyCount "46"]
+
+            1. d4 e6 2. e4 d5 3. Nc3 {They transpose the game in to a normal classical
+            french.} 3... c5 4. Nf3 Nc6 5. exd5 exd5 6. Be2 Nf6 7. O-O Be7 8. Bg5 O-O 9.
+            dxc5 Be6 10. Nd4 Bxc5 11. Nxe6 fxe6 {So , in this position, black clearly seems
+            better because of the open f- file strong bishop on c5 and also a Nice pawn
+            structure.} 12. Bg4 Qd6 {Qd6 unpins the knight from the Bishop and so attacks
+            the g4 Bishop.} 13. Bh3 Rae8 {A nice move , because of a very big center, black
+            may want to push his central pawns and even win the game  $1} 14. Qd2 {Connecting
+            the rooks and also developing the Queen.} 14... Bb4 {A nice move now black's
+            simple idea is to go Ne4 and thus Bxf6 is forced but which does good only to
+            black.} 15. Bxf6 Rxf6 {Now black gains the open f- file and has very active
+            pieces while on the other hand White's position is crumbled.} 16. Rad1 Qc5 17.
+            Qe2 Bxc3 18. bxc3 Qxc3 19. Rxd5 {Although White gains the pawn back, Black
+            should be better here.} 19... Nd4 20. Qh5 $4 {[%c_effect
+            h5;square;h5;type;Blunder;persistent;true] This just loses the game, So what
+            should white play here $2 Its in the puzzle below $1} 20... Ref8 21. Re5 Rh6 22. Qg5
+            Rxh3 $1 {[%c_effect h3;square;h3;type;GreatFind;persistent;true]} 23. Rc5 (23.
+            gxh3 Nf3+ 24. Kh1 Nxg5) 23... Qg3 $3 {[%c_effect
+            g3;square;g3;type;Brilliant;persistent;true] This is brilliant. White resigned
+            here as now there is no way to save the game here.} 0-1`;
+        }
+        
+        var evals = [];
+
+        document.body.innerHTML += `<link rel="stylesheet" href="themes/${pieceTheme}.css">`;
+        function getPgnFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('pgn');
+        }
+
+        if (getPgnFromURL()) {
+            matchpgn = decodeURIComponent(getPgnFromURL());
+        }
+
+        let pgnViewerBoard = LichessPgnViewer(document.querySelector(`.viewers > div:nth-child(1) > div`), {pgn: matchpgn, showControls: false, showMoves: false, showPlayers: true});
+
+        var wasmSupported = typeof WebAssembly === 'object' && WebAssembly.validate(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+
+        //var stockfish = new Worker((wasmSupported ? 'stockfish.wasm.js' : 'stockfish.js'));
+        var stockfish = new Worker('stockfish.min.js');
+
+        function switchPgn(pgn) {
+            localStorage.setItem('lastGamePgn', pgn);
+            window.location.href = window.location.href;
+            /*
+            pgnViewerBoard = LichessPgnViewer(document.querySelector(`.viewers > div:nth-child(1) > div`), {pgn: pgn, showControls: false});
+            evals = [];
+            evalPGN(pgn);*/
+        }
+
+        const STOCKFISH_DEPTH = 10;
+        var evalImage = {
+            "a Melhor Jogada": "img/moverating/best_64x.png",
+            "Ótimo": "img/moverating/great_find_64x.png",
+            "Brilhante": "img/moverating/brilliant_64x.png",
+            "Excelente": "img/moverating/excellent_64x.png",
+            "uma Imprecisão": "img/moverating/inaccuracy_64x.png",
+            "um Erro": "img/moverating/mistake_64x.png",
+            "um Erro Grosseiro": "img/moverating/blunder_64x.png",
+            "Bom": "img/moverating/good_64x.png",
+            "uma Jogada de Livro": "img/moverating/book_64x.png",
+            "uma Chance Perdida": "img/moverating/incorrect_64x.png",
+            "uma jogada Forçada": "img/moverating/forced_64x.png",
+        }
+
+        var analysisboard = new Chess();
+        var analysisboard2 = new Chess();
+        let prevScore = 0;
+        let currScore = 0;
+        var scoreChange;
+        var bestMove = 'e2e4';
+
+        var minBoundEvalChart = 0;
+        var maxBoundEvalChart = 0;
+
+        let moveindex = -1;
+
+        
+        function showeval() {
+            try {
+                document.getElementsByClassName('last-move')[0].innerHTML = `<img src="${evalImage[evals[moveindex][0]]}" width="25" height="25"></img>`
+                document.getElementById('movedetails').innerHTML = evals[moveindex][2];
+            }catch{
+                try {
+
+                    document.getElementsByClassName('last-move')[0].innerHTML = ``;
+                }catch{}
+            }
+        }
+
+
+        evalPGN(matchpgn);
+
+        function evalPGN(pgn) {
+
+            analysisboard.loadPgn(pgn);
+
+            evalMove(0);
+        }
+        function evalMove(i) {
+            const move = analysisboard.history()[i];
+            
+            var moveResult = analysisboard2.move(move);
+
+            if (!moveResult) {
+                finishReview();
+                return;
+            }
+
+            var fen = analysisboard2.fen();
+            
+            var moveanalysisdetails = "Movimento " + moveResult.from + "==>" + moveResult.to + " (" + moveResult.san + ") é ";
+
+            stockfish.postMessage('position fen ' + fen);
+            stockfish.postMessage('go depth ' + STOCKFISH_DEPTH);
+            stockfish.postMessage('eval');
+            let isBookMove = false;
+            var evaltype = "";
+            bookMoves.forEach(bookMove => {
+                if (i < bookMove.split(" ").length) {
+                    if (bookMove.split(" - ")[0].split(" ")[i] == moveResult.san) {
+                        isBookMove = true;
+                        evaltype = ('uma Jogada de Livro');
+                    }
+                }
+            });
+
+            stockfish.onmessage = e => {
+                if (e.data.includes(' score mate ')) {
+                    finishReview();
+                }
+                console.log(e);
+                if (e.data.includes('Total evaluation: ')) {
+                    
+                    currScore = parseFloat(e.data.split('Total evaluation: ')[1].split(" ")[0]);
+                    
+                    if (currScore < minBoundEvalChart) {
+                        minBoundEvalChart = currScore;
+                    }
+
+                    if (currScore > maxBoundEvalChart) {
+                        maxBoundEvalChart = currScore;
+                    }
+                    
+
+                    scoreChange = (currScore - prevScore) * ((i % 2) == 0 ? 1 : -1);
+                    
+                    if (!isBookMove) {
+                        if (moveResult.from + moveResult.to === bestMove) {
+                            evaltype = ('a Melhor Jogada');
+                            if (scoreChange > 3) {
+                                evaltype = ('Ótimo');
+                            }
+                            if (scoreChange > 4.5) {
+                                if (analysisboard2.isAttacked(moveResult.to, game.turn())) {
+                                    let squareinfodetails = analysisboard2.get(moveResult.to);
+                                    if (!analysisboard2.isAttacked(moveResult.to, (game.turn() == 'w' ? 'b' : 'w'))) {
+                                        if (squareinfodetails.type != "p") {
+                                            evaltype = ('Brilhante');
+                                        }
+                                    }
+                                    let legalMoves2 = analysisboard2.moves({verbose: true});
+                                    legalMoves2.forEach(legalMove => {
+                                        let squareinfodetails2 = analysisboard2.get(legalMove.from);
+                                        if (legalMove.captured) {
+                                            var pieceValues = {
+                                                "p": 1,
+                                                "n": 3,
+                                                "b": 3,
+                                                "r": 5,
+                                                "q": 9
+                                            }
+                                            if (pieceValues[squareinfodetails.type] - pieceValues[squareinfodetails2.type] >= 0) {
+                                                evaltype = ('Brilhante');
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }else if (scoreChange > 0.25) {
+                            evaltype = ('Excelente');
+                        } else if (scoreChange < 0) {
+                            evaltype = ('uma Imprecisão');
+                            if (scoreChange < -0.3) {
+                                evaltype = ('um Erro');
+                            }
+                            if (scoreChange < -1) {
+                                evaltype = ('um Erro Grosseiro');
+                            }
+                        } else {
+                            evaltype = ('Bom');
+                        }
+                    }
+
+                    analysisboard2.undo();
+                    let legalMoves = analysisboard2.moves();
+                    if (legalMoves.length == 1) {
+                        evaltype = "uma jogada Forçada";
+                    }
+                    analysisboard2.move(move);
+
+
+                    if (moveResult.from + moveResult.to === bestMove) {
+                        //document.getElementById('moves').innerHTML += `<div class="moveStats">${i} Movimento ${moveResult.from} ==> ${moveResult.to} é ${evaltype}</div>`;
+                    }else{
+                        //document.getElementById('moves').innerHTML += `<div class="moveStats">${i} Movimento ${moveResult.from} ==> ${moveResult.to} é ${evaltype},<br/> Melhor Movimento: ${bestMove}</div>`;
+                    }
+                    //document.getElementById('moves').innerHTML += `<br/>`
+
+                    prevScore = currScore;
+                    //evaltype = ('miss');
+
+
+
+
+                }
+                if (e.data.includes('bestmove ')) {
+                    const lastBestMove = bestMove;
+                    let canCheckForSecondMessage = true;
+                    bestMove = e.data.split(' ')[1];
+                    let squareDetails = {}
+                    if (moveResult.from + moveResult.to !== lastBestMove && !analysisboard2.isCheckmate()) {
+                        analysisboard2.undo();
+                        analysisboard2.move({
+                            from: lastBestMove[0] + lastBestMove[1],
+                            to: lastBestMove[2] + lastBestMove[3],
+                            promotion: 'q',
+                        });
+                        if (analysisboard2.isCheckmate()) {
+                            evaltype = "uma Chance Perdida";
+                        }
+                        analysisboard2.undo();
+                        analysisboard2.move(move);         
+                    }
+
+                    squareDetails = analysisboard2.get(lastBestMove[2] + lastBestMove[3]);
+
+                    
+
+                    if (squareDetails && canCheckForSecondMessage) {
+                        if (squareDetails.color == analysisboard2.turn()) {
+                            if (squareDetails.type == "n") {
+                                evaltype = "uma Chance Perdida";
+                            }
+                            if (squareDetails.type == "b") {
+                                evaltype = "uma Chance Perdida";
+                            }
+                            if (squareDetails.type == "r") {
+                                evaltype = "uma Chance Perdida";
+                            }
+                            if (squareDetails.type == "q") {
+                                evaltype = "uma Chance Perdida";
+                            }
+                        }
+                    }
+
+                    moveanalysisdetails += `${evaltype} <img src="${evalImage[evaltype]}" width="15" height="15">`;
+
+
+                    if (moveResult.from + moveResult.to !== lastBestMove && !analysisboard2.isCheckmate()) {
+                        analysisboard2.undo();
+                        analysisboard2.move({
+                            from: lastBestMove[0] + lastBestMove[1],
+                            to: lastBestMove[2] + lastBestMove[3],
+                            promotion: 'q',
+                        });
+                        if (analysisboard2.isCheckmate()) {
+                            moveanalysisdetails += `esse movimento faz o jogador perder a oportunidade de dar um xeque-mate`;
+                        }
+                        analysisboard2.undo();
+                        analysisboard2.move(move);         
+                    }
+
+                    if (squareDetails && canCheckForSecondMessage) {
+                        if (squareDetails.color == analysisboard2.turn()) {
+                            if (squareDetails.type == "n") {
+                                moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder a oportunidade de capturar o Cavalo";
+                            }
+                            if (squareDetails.type == "b") {
+                                moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder a oportunidade de capturar o Bispo";
+                            }
+                            if (squareDetails.type == "r") {
+                                moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder a oportunidade de capturar o Torre";
+                            }
+                            if (squareDetails.type == "q") {
+                                moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder a oportunidade de capturar a Rainha";
+                            }
+                        }
+                    }
+
+
+                    if (evaltype == "um Erro Grosseiro") {
+                        if (moveResult.to == bestMove[2] + bestMove[3]) {
+                            squareDetails = analysisboard2.get(moveResult.to);
+                            if (squareDetails.color != analysisboard2.turn()) {
+                                if (squareDetails.type == "n") {
+                                    moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder o Cavalo";
+                                    canCheckForSecondMessage = false;
+                                }
+                                if (squareDetails.type == "b") {
+                                    moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder o Bispo";
+                                    canCheckForSecondMessage = false;
+                                }
+                                if (squareDetails.type == "r") {
+                                    moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder o Torre";
+                                    canCheckForSecondMessage = false;
+                                }
+                                if (squareDetails.type == "q") {
+                                    moveanalysisdetails += "<br/><br/> esse movimento faz o jogador perder a Rainha";
+                                    canCheckForSecondMessage = false;
+                                }
+                            }
+                        }
+                    }
+
+
+                    evals.push([evaltype, currScore, moveanalysisdetails]);
+                    showeval();
+                    setTimeout(() => {
+                        if (i + 1 < analysisboard.history().length) {
+                            evalMove(i + 1);
+                        }else{
+                            finishReview();
+                        }
+                    //}, (wasmSupported ? 1 : 1100));
+                    }, 1100);
+                }
+            };
+
+            function finishReview() {
+                let xValues = [];
+                let yValues = [];
+                evals.forEach((curreval, index) => {
+                    xValues.push(index + 1);
+                    yValues.push(curreval[1]);
+                });
+
+                new Chart("whiteeval", {
+                    type: "line",
+                    data: {
+                        labels: xValues,
+                        datasets: [{
+                        fill: false,
+                        lineTension: 0,
+                        backgroundColor: "rgba(0,0,255,1.0)",
+                        borderColor: "rgba(0,0,255,0.1)",
+                        data: yValues
+                        }]
+                    },
+                    options: {
+                        legend: {display: false},
+                        scales: {
+                            yAxes: [{ticks: {min: minBoundEvalChart, max: maxBoundEvalChart}}],
+                        }
+                    }
+                });
+
+                stockfish = null;
+            }
+        }
+    </script>
+</body>
+</html>

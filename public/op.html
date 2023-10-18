@@ -1,0 +1,302 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="chessground.base.min.css">
+    <!--link rel="stylesheet" href="chessground.brown.css">
+    <link rel="stylesheet" href="chessground.cburnett.css"-->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+      }
+      
+      .title {
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #333;
+        font-size: 30px;
+      }
+
+      #board {
+        width: 550px;
+        height: 0;
+        padding-bottom: 550px;
+        margin: 20px 0;
+        border: 1px solid #333; 
+      }
+      
+      #status {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #666;
+        text-shadow: 1px 1px #fff;
+      }
+      
+      button {
+        background: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        transition: background 0.3s ease;
+      }
+      
+      button:hover {
+        background: #2980b9;
+      }
+      
+      button:active {
+        background: #2980b9;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);  
+        transform: translateY(2px);
+      }
+      
+      #promotion button {
+        display: inline-block;
+        margin: 0 10px;
+      }
+      
+      #promotion button img {
+        height: 50px;
+      }
+      
+      a {
+        color: #3498db;
+        text-decoration: none;
+        border-bottom: 1px solid #3498db;
+      }
+
+      #chatiframe1container {
+        display: block;
+        width: 30%;
+        height: 550px;
+
+
+
+        display: none;
+      }
+
+      .playertimer {
+        border: 2px solid burlywood;
+        border-radius: 2px;
+        font-size: 25px;
+      }
+
+      #chatiframe2container {
+        display: none;
+      }
+      
+      @media (max-width: 600px) {
+        #status {
+          font-size: 18px;
+        }
+        
+        button {
+          padding: 6px 12px;
+          font-size: 14px;
+        }
+
+        #board {
+            width: 95%;
+            padding-bottom: 95%;
+        }
+
+        #chatiframe1container {
+            display: none;
+        }
+
+        #chatiframe2container {
+          display: block;
+          width: 100%;
+          height: 400px;
+          
+
+        
+          display: none;
+        }
+    }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="chessground.min.js"></script>
+    <script src="chess.js"></script>
+    <script src="cordova.js"></script>
+    <script src="socket.io.min.js"></script>
+  </head>
+  <body>
+    <div class="title">OXADREZ</div>
+    <br/>
+    <div id="status">Procurando Atualizações do app</div>
+    <br/>
+    <br/>
+
+    <div style="display: flex; font-size: 15px; justify-content: center">Usuário (1000) <div class="playertimer" id="othertime">30:00</div></div>
+    <div id="piececaptured0" style="font-size: 30px; text-align: center;">|</div>
+    <div style="display: flex; flex-grow: 1; justify-content: center;"><div id="board"></div><div id="chatiframe1container"><iframe style="width: 100%; height:100%;" src=""></iframe></div></div>
+    <div style="display: flex; font-size: 15px; justify-content: center;">Usuário (1000) <div class="playertimer" id="yourtime">30:00</div></div>
+    <div id="piececaptured1" style="font-size: 30px; text-align: center;">|</div>
+    <br/>
+    <br/>
+    <div id="chatiframe2container"><iframe style="width: 100%; height: 100%;" src=""></iframe></div>
+    <!--button id="create-room">Create Room</button> <br/> <br/>
+    <button id="join-room">Join Room</button> <br/> <br/-->
+    
+    <div id="promotion" style="display: none;">
+        
+    </div>
+    <script>
+        document.addEventListener('deviceready', function() {
+
+        });
+    </script>
+    <script src="chesslogic.js"></script>
+    <script>
+
+    const STOCKFISH_DEPTH = 5;
+    var stockfish = new Worker('./stockfish.min.js');
+    const STOCKFISH_SKILL_LEVEL = 2;
+
+    function shareURL(message, url, chooserTitle) {
+        window.plugins.socialsharing.shareWithOptions({
+            message,
+            url,
+            chooserTitle,
+        });
+    }
+
+
+    var app_version = '0.5';
+    var socket = io('https://oxadrez.com');
+    let roomId = null;
+
+    var yourTime = 1800;
+    var otherTime = 1800;
+
+    function getIdFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id');
+    }
+
+    // Obter o 'id' da URL
+    roomId = getIdFromURL();
+
+    function onUserMoveEvent(move) {
+      socket.emit('makeMove', {room: roomId, move});
+    }
+
+
+    socket.on('connect', () => {
+        socket.emit('checkupdate', app_version);
+    });
+
+
+    socket.on('updated', () => {//'connect', () => {
+        if (roomId !== null) {
+            socket.emit('joinRoom', roomId);
+            return;
+        }
+        socket.emit('quickMatch', 600);
+        document.getElementById('status').innerHTML = 'Procurando Partida... (10 min)';
+    });
+
+
+    socket.on('roomCreated', (roomId) => {
+        document.getElementById('status').innerHTML = `Sala criada! Copie esse link: <br/> <a onclick="shareURL('Link do desafio xadrez', 'https://oxadrez.com/room/${roomId}', 'OXADREZ - Compartilhar Desafio')">https://oxadrez.com/room/${roomId}`;
+          window.location.href = window.location.href;
+    });
+
+
+
+    socket.on('not updated', () => {
+        window.location.href = '/update.html';
+    });
+
+    socket.on('joinPermitted', (room, turn, ytime, otime) => {
+        roomId = room;
+        StartGame(turn);
+        yourTime = ytime;
+        otherTime = otime;
+        if (turn == 'w') {
+          botMove(game.fen());
+        }
+    });
+
+
+    socket.on('moveMade', (move, ytime, otime) => {
+        moveMade(move);
+        yourTime = ytime;
+        otherTime = otime;
+        setTimeout(() => {
+          botMove(game.fen());
+        }, Math.floor(Math.random() * 10000) + 2500);
+    });
+
+    socket.on('gameOver', () => {
+        gameOver();
+
+        window.location.href = window.location.href;
+    });
+
+    socket.on('timeOver', (winnerColor) => {
+      let winner = 'Empate';
+
+      winner = winnerColor === 'w' ? 'Vitória das pretas' : 'Vitória das Brancas';
+
+      document.getElementById('status').innerHTML = winner + `<button onclick="window.location.href = window.location.href;">RECARREGAR</button>`;
+
+      localStorage.setItem('lastGamePgn', game.pgn());
+
+      window.location.href = window.location.href;
+    });
+
+    function updateTime() {
+      if (!gamestarted) {
+        return;
+      }
+      var yourTimeWithoutDecimals = Math.ceil(yourTime);
+      const yourTimeMinutes = Math.floor(yourTimeWithoutDecimals / 60);
+      document.getElementById("yourtime").innerHTML = yourTimeMinutes + ":" + (yourTimeWithoutDecimals % 60).toString().padStart(2, '0');
+
+
+      var otherTimeWithoutDecimals = Math.ceil(otherTime);
+
+      const otherTimeMinutes = Math.floor(otherTimeWithoutDecimals / 60);
+      document.getElementById("othertime").innerHTML = otherTimeMinutes + ":" + (otherTimeWithoutDecimals % 60).toString().padStart(2, '0');
+    }
+
+    setInterval(() => {
+      if (game.turn() == yourturn) {
+        yourTime -= 0.1;
+      }else{
+        otherTime -= 0.1;
+      }
+      updateTime();
+    }, 100);
+
+
+    // Função para retornar movimento
+    function botMove(position) {
+        stockfish.postMessage('setoption name Skill Level value ' + STOCKFISH_SKILL_LEVEL);
+        stockfish.postMessage('position fen ' + position);
+        stockfish.postMessage('go depth ' + STOCKFISH_DEPTH);
+    }
+    stockfish.onmessage = e => {
+        if (e.data.includes('bestmove ')) {
+            var bestMove = e.data.split(' ')[1];
+            const moveResult = game.move({
+                from: bestMove[0] + bestMove[1],
+                to: bestMove[2] + bestMove[3],
+                promotion: 'q',
+            });
+            game.undo();
+
+            socket.emit('makeMove', {room: roomId, move: moveResult.san});
+        }
+    };
+    </script>
+
+  </body>
+</html>

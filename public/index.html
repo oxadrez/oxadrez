@@ -1,0 +1,266 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="chessground.base.min.css">
+    <!--link rel="stylesheet" href="chessground.brown.css">
+    <link rel="stylesheet" href="chessground.cburnett.css"-->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+      }
+
+      .title {
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #333;
+        font-size: 30px;
+      }
+
+      #board {
+        width: 550px;
+        height: 0;
+        padding-bottom: 550px;
+        margin: 20px 0;
+        border: 1px solid #333; 
+      }
+
+      #status {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #666;
+        text-shadow: 1px 1px #fff;
+      }
+
+      button {
+        background: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background: #2980b9;
+      }
+
+      button:active {
+        background: #2980b9;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);  
+        transform: translateY(2px);
+      }
+
+      #promotion button {
+        display: inline-block;
+        margin: 0 10px;
+      }
+
+      #promotion button img {
+        height: 50px;
+      }
+
+      a {
+        color: #3498db;
+        text-decoration: none;
+        border-bottom: 1px solid #3498db;
+      }
+
+      #chatiframe1container {
+        display: block;
+        width: 30%;
+        height: 550px;
+
+
+
+        display: none;
+      }
+
+      .playertimer {
+        border: 2px solid burlywood;
+        border-radius: 2px;
+        font-size: 25px;
+      }
+
+      #chatiframe2container {
+        display: none;
+      }
+
+      @media (max-width: 600px) {
+        #status {
+          font-size: 18px;
+        }
+
+        button {
+          padding: 6px 12px;
+          font-size: 14px;
+        }
+
+        #board {
+            width: 95%;
+            padding-bottom: 95%;
+        }
+
+        #chatiframe1container {
+            display: none;
+        }
+
+        #chatiframe2container {
+          display: block;
+          width: 100%;
+          height: 400px;
+
+
+
+          display: none;
+        }
+    }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="chessground.min.js"></script>
+    <script src="chess.js"></script>
+    <script src="cordova.js"></script>
+    <script src="socket.io.min.js"></script>
+  </head>
+  <body>
+    <div class="title">OXADREZ</div>
+    <br/>
+    <div id="status">Procurando Atualizações do app</div>
+    <br/>
+    <br/>
+
+    <div style="display: flex; font-size: 15px; justify-content: center">Usuário (1000) <div class="playertimer" id="othertime">30:00</div></div>
+    <div id="piececaptured0" style="font-size: 30px; text-align: center;">|</div>
+    <div style="display: flex; flex-grow: 1; justify-content: center;"><div id="board"></div><div id="chatiframe1container"><iframe style="width: 100%; height:100%;" src=""></iframe></div></div>
+    <div style="display: flex; font-size: 15px; justify-content: center;">Usuário (1000) <div class="playertimer" id="yourtime">30:00</div></div>
+    <div id="piececaptured1" style="font-size: 30px; text-align: center;">|</div>
+    <br/>
+    <br/>
+    <div id="chatiframe2container"><iframe style="width: 100%; height: 100%;" src=""></iframe></div>
+    <!--button id="create-room">Create Room</button> <br/> <br/>
+    <button id="join-room">Join Room</button> <br/> <br/-->
+    
+    <div id="promotion" style="display: none;">
+        
+    </div>
+    <script>
+        document.addEventListener('deviceready', function() {
+
+        });
+    </script>
+    <script src="chesslogic.js"></script>
+    <script>
+      function shareURL(message, url, chooserTitle) {
+          window.plugins.socialsharing.shareWithOptions({
+              message,
+              url,
+              chooserTitle,
+          });
+      }
+
+
+      var app_version = '0.5';
+      var socket = io('https://oxadrez.com');
+      let roomId = null;
+
+      var yourTime = 300;
+      var otherTime = 300;
+
+      function getIdFromURL() {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get('id');
+      }
+
+    // Obter o 'id' da URL
+    roomId = getIdFromURL();
+
+    function onUserMoveEvent(move) {
+      socket.emit('makeMove', {room: roomId, move});
+    }
+
+
+    socket.on('connect', () => {
+        if (roomId !== null) {
+            socket.emit('joinRoom', roomId);
+            return;
+        }
+      document.getElementById('status').innerHTML = 
+      `
+      <button onclick="socket.emit('quickMatch', 20); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (20s)</button><br/>
+      <button onclick="socket.emit('quickMatch', 60); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (1min)</button><br/>
+      <button onclick="socket.emit('quickMatch', 120); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (2min)</button><br/>
+      <button onclick="socket.emit('quickMatch', 300); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (5min)</button><br/>
+      <button onclick="socket.emit('quickMatch', 600); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (10min)</button><br/>
+      <button onclick="socket.emit('quickMatch', 900); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (15min)</button><br/>
+      <button onclick="socket.emit('quickMatch', 1800); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (30min)</button><br/>
+      <button onclick="socket.emit('quickMatch', 3600); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (1h)</button><br/>
+      <button onclick="socket.emit('quickMatch', 7200); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (2h)</button><br/>
+      <button onclick="socket.emit('createRoom');">Jogar com um amigo</button><br/>
+      <br/><a href="/downloadandroid">Baixar Aplicativo</a>`;
+    });
+
+
+    socket.on('joinPermitted', (room, turn, ytime, otime) => {
+        roomId = room;
+        StartGame(turn);
+        yourTime = ytime;
+        otherTime = otime;
+    });
+
+
+    socket.on('moveMade', (move, ytime, otime) => {
+        moveMade(move);
+        yourTime = ytime;
+        otherTime = otime;
+    });
+
+    socket.on('gameOver', () => {
+        gameOver();
+    });
+
+    socket.on('roomCreated', (roomId) => {
+          document.getElementById('status').innerHTML = `Sala criada! Copie esse link: <br/> <a onclick="shareURL('Link do desafio xadrez', 'https://oxadrez.com/room/${roomId}', 'OXADREZ - Compartilhar Desafio')">https://oxadrez.com/room/${roomId}`;
+      });
+
+    socket.on('timeOver', (winnerColor) => {
+      let winner = 'Empate';
+
+      winner = winnerColor === 'w' ? 'Vitória das pretas' : 'Vitória das Brancas';
+
+      document.getElementById('status').innerHTML = winner + `<button onclick="window.location.href = window.location.href;">RECARREGAR</button>`;
+
+      localStorage.setItem('lastGamePgn', game.pgn());
+
+    });
+
+      function updateTime() {
+        if (!gamestarted) {
+          return;
+        }
+        var yourTimeWithoutDecimals = Math.ceil(yourTime);
+        const yourTimeMinutes = Math.floor(yourTimeWithoutDecimals / 60);
+        document.getElementById("yourtime").innerHTML = yourTimeMinutes + ":" + (yourTimeWithoutDecimals % 60).toString().padStart(2, '0');
+
+
+        var otherTimeWithoutDecimals = Math.ceil(otherTime);
+
+        const otherTimeMinutes = Math.floor(otherTimeWithoutDecimals / 60);
+        document.getElementById("othertime").innerHTML = otherTimeMinutes + ":" + (otherTimeWithoutDecimals % 60).toString().padStart(2, '0');
+      }
+
+      setInterval(() => {
+        if (game.turn() == yourturn) {
+          yourTime -= 0.1;
+        }else{
+          otherTime -= 0.1;
+        }
+        updateTime();
+      }, 100);
+    </script>
+
+  </body>
+</html>
