@@ -8,7 +8,7 @@ const database = new replitdbclient();
 database.delete("nextRoomId");
 database.empty();
 
-
+//
 /*
 await database.set("key", "value");
 let key = await database.get("key");
