@@ -56,7 +56,7 @@ app.get('/downloadandroid', (req, res) => {
 
 app.get('/room/:roomId', async (req, res) => {
   if (rooms[req.params.roomId]) {
-    res.send(`<script>window.location.href = 'oxadrez://joinroom?id=${req.params.roomId}';window.location.href = '/downloadapp.html';</script>`);
+    res.send(`<script>window.location.href = '/?id=${req.params.roomId}';</script>`);
   } else {
     let roompgn = await database.get('room-' + req.params.roomId);
     if (roompgn) {
@@ -183,7 +183,7 @@ io.on('connection', socket => {
 
       nextRoomId += 1;
       database.set("nextRoomId", nextRoomId);
-    } else {
+    } else if (!rooms[roomId].black) {
       rooms[roomId].black = socket;
       if (Math.random() < 0.5) {
         const whitetemp = rooms[roomId].white;

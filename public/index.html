@@ -127,7 +127,7 @@
     <script src="socket.io.min.js"></script>
   </head>
   <body>
-    <div class="title">OXADREZ</div>
+    <div id="title" class="title">OXADREZ</div>
     <br/>
     <div id="status">Procurando Atualizações do app</div>
     <br/>
@@ -209,6 +209,7 @@
         StartGame(turn);
         yourTime = ytime;
         otherTime = otime;
+        document.getElementById('title').innerHTML += ` - <a href="https://oxadrez.com/room/${roomId}"> Jogo #${roomId}</a>`;
     });
 
 
