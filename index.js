@@ -2,16 +2,16 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { Chess } = require('chess.js');
-const replitdbclient = require("@replit/database");
-const database = new replitdbclient();
+const database = require('./database');
 
 database.delete("nextRoomId");
 database.empty();
 
+
 //
 /*
-await database.set("key", "value");
-let key = await database.get("key");
+database.set("key", "value");
+let key = database.get("key");
 console.log(key);
 */
 
@@ -28,18 +28,17 @@ const io = new Server(server, {
 
 var nextRoomId = 0;
 
-database.get("nextRoomId").then((databaseNextRoomId) => {
-  if (databaseNextRoomId) {
-    nextRoomId = databaseNextRoomId;
-  } else {
-    database.set("nextRoomId", 0);
-    for (let i = 0; i < nextRoomId; i++) {
-      try {
-        database.delete('room-' + i);
-      } catch { }
-    }
+var databaseNextRoomId = parseInt(database.get("nextRoomId"));
+if (databaseNextRoomId) {
+  nextRoomId = databaseNextRoomId;
+} else {
+  database.set("nextRoomId", 0);
+  for (let i = 0; i < nextRoomId; i++) {
+    try {
+      database.delete('room-' + i);
+    } catch { }
   }
-});
+}
 
 
 const CLOCK_TIME = 1800;
@@ -58,7 +57,7 @@ app.get('/room/:roomId', async (req, res) => {
   if (rooms[req.params.roomId]) {
     res.send(`<script>window.location.href = '/?id=${req.params.roomId}';</script>`);
   } else {
-    let roompgn = await database.get('room-' + req.params.roomId);
+    let roompgn = database.get('room-' + req.params.roomId);
     if (roompgn) {
       res.send(`<script>window.location.href = 'oxadrez://viewpgn?pgn=${encodeURIComponent(roompgn)}';window.location.href = '/downloadapp.html';</script>`);
     }
@@ -94,7 +93,8 @@ io.on('connection', socket => {
         socket.emit('roomCreated', nextRoomId);
 
         nextRoomId += 1;
-        await database.set("nextRoomId", nextRoomId);
+        database.set("nextRoomId", nextRoomId);
+        
       }
     } catch {
 
@@ -121,6 +121,7 @@ io.on('connection', socket => {
           } catch { }
 
           database.set(`room-${roomId}`, rooms[roomId].game.pgn());
+          
           delete rooms[roomId];
         }
         if (rooms[roomId].white && rooms[roomId].white.id == socket.id) {
@@ -134,6 +135,7 @@ io.on('connection', socket => {
           } catch { }
 
           database.set(`room-${roomId}`, rooms[roomId].game.pgn());
+          
           delete rooms[roomId];
 
         }
@@ -167,7 +169,8 @@ io.on('connection', socket => {
           rooms[roomId].black.emit('joinPermitted', roomId, 'w', selectedtime, selectedtime);
 
           nextRoomId += 1;
-          await database.set("nextRoomId", nextRoomId);
+          database.set("nextRoomId", nextRoomId);
+          
 
 
           waitingrooms[selectedtime.toString()].splice(0, 2);
@@ -183,6 +186,7 @@ io.on('connection', socket => {
 
       nextRoomId += 1;
       database.set("nextRoomId", nextRoomId);
+      
     } else if (!rooms[roomId].black) {
       rooms[roomId].black = socket;
       if (Math.random() < 0.5) {
@@ -224,6 +228,7 @@ io.on('connection', socket => {
             rooms[room].white.emit('gameOver');
             rooms[room].black.emit('gameOver');
             database.set(`room-${roomId} `, rooms[roomId].game.pgn());
+            
             delete rooms[roomId];
           }
         }
@@ -246,6 +251,7 @@ setInterval(() => {
           rooms[roomId].black.emit('timeOver', "b");
 
           database.set(`room-${roomId} `, rooms[roomId].game.pgn());
+          
           delete rooms[roomId];
         }
       } else {
@@ -256,6 +262,7 @@ setInterval(() => {
 
 
           database.set(`room-${roomId} `, rooms[roomId].game.pgn());
+          
           delete rooms[roomId];
         }
       }
