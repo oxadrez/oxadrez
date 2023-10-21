@@ -106,7 +106,7 @@ const chessgroundconfig = {
                 to: dest,
                 promotion: promotion
             });
-
+        
             // was this a legal move?
             if (moveResult) {
                 if (moveResult.san.includes('=')) {
@@ -160,7 +160,7 @@ board = Chessground(document.getElementById('board'), chessgroundconfig);
 game = new Chess();
 
 function moveMade(move) {
-
+    
     let moveinfo = game.move(move);
 
     if (moveinfo) {
@@ -193,8 +193,8 @@ function moveMade(move) {
         });
     }, 3000);
 
-    //board.set({check: (game.isCheck() ? (game.turn() == "w" ? 'white' : 'black') : false)});
-
+    board.set({check: (game.isCheck() ? (game.turn() == "w" ? 'white' : 'black') : false)});
+    
     if (game.turn() == yourturn) {
         if (selectedpremove) {
             const moveinfo2 = game.move(selectedpremove);
@@ -209,7 +209,7 @@ function moveMade(move) {
         fen: game.fen()
     });
 
-
+    
     updateStatus();
 };
 
@@ -235,7 +235,7 @@ function gameOver() {
 
     localStorage.setItem('lastGamePgn', game.pgn());
 
-
+    
 }
 function StartGame(turn) {
     game = new Chess();
