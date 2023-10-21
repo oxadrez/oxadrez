@@ -2,16 +2,16 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { Chess } = require('chess.js');
-const database = require('./database');
+const db = require('./database');
 
-database.delete("nextRoomId");
-database.empty();
+db.delete("nextRoomId");
+db.empty();
 
 
 //
 /*
-database.set("key", "value");
-let key = database.get("key");
+db.set("key", "value");
+let key = db.get("key");
 console.log(key);
 */
 
@@ -28,14 +28,14 @@ const io = new Server(server, {
 
 var nextRoomId = 0;
 
-var databaseNextRoomId = parseInt(database.get("nextRoomId"));
-if (databaseNextRoomId) {
-  nextRoomId = databaseNextRoomId;
+var dbNextRoomId = parseInt(db.get("nextRoomId"));
+if (dbNextRoomId) {
+  nextRoomId = dbNextRoomId;
 } else {
-  database.set("nextRoomId", 0);
+  db.set("nextRoomId", 0);
   for (let i = 0; i < nextRoomId; i++) {
     try {
-      database.delete('room-' + i);
+      db.delete('room-' + i);
     } catch { }
   }
 }
@@ -57,7 +57,7 @@ app.get('/room/:roomId', async (req, res) => {
   if (rooms[req.params.roomId]) {
     res.send(`<script>window.location.href = '/?id=${req.params.roomId}';</script>`);
   } else {
-    let roompgn = database.get('room-' + req.params.roomId);
+    let roompgn = db.get('room-' + req.params.roomId);
     if (roompgn) {
       res.send(`<script>window.location.href = 'oxadrez://viewpgn?pgn=${encodeURIComponent(roompgn)}';window.location.href = '/downloadapp.html';</script>`);
     }
@@ -93,7 +93,7 @@ io.on('connection', socket => {
         socket.emit('roomCreated', nextRoomId);
 
         nextRoomId += 1;
-        database.set("nextRoomId", nextRoomId);
+        db.set("nextRoomId", nextRoomId);
         
       }
     } catch {
@@ -120,7 +120,7 @@ io.on('connection', socket => {
             }
           } catch { }
 
-          database.set(`room-${roomId}`, rooms[roomId].game.pgn());
+          db.set(`room-${roomId}`, rooms[roomId].game.pgn());
           
           delete rooms[roomId];
         }
@@ -134,7 +134,7 @@ io.on('connection', socket => {
             }
           } catch { }
 
-          database.set(`room-${roomId}`, rooms[roomId].game.pgn());
+          db.set(`room-${roomId}`, rooms[roomId].game.pgn());
           
           delete rooms[roomId];
 
@@ -169,7 +169,7 @@ io.on('connection', socket => {
           rooms[roomId].black.emit('joinPermitted', roomId, 'w', selectedtime, selectedtime);
 
           nextRoomId += 1;
-          database.set("nextRoomId", nextRoomId);
+          db.set("nextRoomId", nextRoomId);
           
 
 
@@ -185,7 +185,7 @@ io.on('connection', socket => {
       socket.emit('roomCreated', nextRoomId);
 
       nextRoomId += 1;
-      database.set("nextRoomId", nextRoomId);
+      db.set("nextRoomId", nextRoomId);
       
     } else if (!rooms[roomId].black) {
       rooms[roomId].black = socket;
@@ -227,7 +227,7 @@ io.on('connection', socket => {
           if (rooms[room].game.isGameOver()) {
             rooms[room].white.emit('gameOver');
             rooms[room].black.emit('gameOver');
-            database.set(`room-${roomId} `, rooms[roomId].game.pgn());
+            db.set(`room-${roomId} `, rooms[roomId].game.pgn());
             
             delete rooms[roomId];
           }
@@ -250,7 +250,7 @@ setInterval(() => {
           rooms[roomId].white.emit('timeOver', "b");
           rooms[roomId].black.emit('timeOver', "b");
 
-          database.set(`room-${roomId} `, rooms[roomId].game.pgn());
+          db.set(`room-${roomId} `, rooms[roomId].game.pgn());
           
           delete rooms[roomId];
         }
@@ -261,7 +261,7 @@ setInterval(() => {
           rooms[roomId].black.emit('timeOver', "w");
 
 
-          database.set(`room-${roomId} `, rooms[roomId].game.pgn());
+          db.set(`room-${roomId} `, rooms[roomId].game.pgn());
           
           delete rooms[roomId];
         }
