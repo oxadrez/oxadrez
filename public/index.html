@@ -243,14 +243,26 @@
           return;
         }
         var yourTimeWithoutDecimals = Math.ceil(yourTime);
-        const yourTimeMinutes = Math.floor(yourTimeWithoutDecimals / 60);
-        document.getElementById("yourtime").innerHTML = yourTimeMinutes + ":" + (yourTimeWithoutDecimals % 60).toString().padStart(2, '0');
+        var yourTimeMinutes = Math.floor(yourTimeWithoutDecimals / 60);
+        const yourTimeHours = Math.floor(yourTimeMinutes / 60);
+        yourTimeMinutes = yourTimeMinutes % 60;
+        if (yourTimeHours > 0) {
+          document.getElementById("yourtime").innerHTML = `${yourTimeHours}:${(yourTimeMinutes % 60).toString().padStart(2, '0')}:${(yourTimeWithoutDecimals % 60).toString().padStart(2, '0')}`;
+        }else{
+          document.getElementById("yourtime").innerHTML = yourTimeMinutes + ":" + (yourTimeWithoutDecimals % 60).toString().padStart(2, '0');
+        }
 
 
         var otherTimeWithoutDecimals = Math.ceil(otherTime);
 
-        const otherTimeMinutes = Math.floor(otherTimeWithoutDecimals / 60);
-        document.getElementById("othertime").innerHTML = otherTimeMinutes + ":" + (otherTimeWithoutDecimals % 60).toString().padStart(2, '0');
+        var otherTimeMinutes = Math.floor(otherTimeWithoutDecimals / 60);
+        const otherTimeHours = Math.floor(otherTimeMinutes / 60);
+        otherTimeMinutes = otherTimeMinutes % 60;
+        if (otherTimeHours > 0) {
+          document.getElementById("othertime").innerHTML = `${otherTimeHours}:${(otherTimeMinutes % 60).toString().padStart(2, '0')}:${(otherTimeWithoutDecimals % 60).toString().padStart(2, '0')}`;
+        }else{
+          document.getElementById("othertime").innerHTML = otherTimeMinutes + ":" + (otherTimeWithoutDecimals % 60).toString().padStart(2, '0');
+        }
       }
 
       setInterval(() => {
