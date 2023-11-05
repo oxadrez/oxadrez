@@ -294,7 +294,7 @@
       }, 100);
 
       function onFfishInit() {
-          socket = io();
+          socket = io('https://oxadrez.com');
 
           socket.on('connect', () => {
             socket.emit('setelo', yourelo);
