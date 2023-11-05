@@ -294,7 +294,7 @@
       }, 100);
 
       function onFfishInit() {
-          socket = io('https://oxadrez.com');
+          socket = io('https://oxadrez.vercel.app');
 
           socket.on('connect', () => {
             socket.emit('setelo', yourelo);
