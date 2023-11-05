@@ -1,4 +1,4 @@
-<html>
+<html data-bs-theme="light">
   <head>
     <link rel="stylesheet" href="chessground.base.min.css">
     <!--link rel="stylesheet" href="chessground.brown.css">
@@ -6,7 +6,6 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        background: #f5f5f5;
       }
 
       .title {
@@ -19,8 +18,6 @@
 
       #board {
         width: 550px;
-        height: 0;
-        padding-bottom: 550px;
         margin: 20px 0;
         border: 1px solid #333; 
       }
@@ -70,27 +67,60 @@
         border-bottom: 1px solid #3498db;
       }
 
-      #chatiframe1container {
+      #rightbar1container {
         display: block;
         width: 30%;
         height: 550px;
 
 
 
-        display: none;
       }
 
       .playertimer {
         border: 2px solid burlywood;
         border-radius: 2px;
-        font-size: 25px;
+        font-size: 18px;
       }
 
-      #chatiframe2container {
+      #rightbar2container {
         display: none;
       }
 
+
+
+      .grid {
+        max-width: 500px;
+        margin: 0 auto;
+        display: grid; 
+        grid-template-columns: 33% 33% 33%; 
+        grid-template-rows: 33% 33% 33%; 
+        gap: 8px 1px;
+        grid-template-areas: 
+          ". . ."
+          ". . ."
+          ". . ."; 
+      }
+      
+      .grid-item {
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        border-radius: 4px;
+        padding: 16px;
+        padding-bottom: 55px;
+        text-align: center;
+        cursor: pointer;
+        width: 100%;
+        font-size: 35px;
+      }
+      
+
       @media (max-width: 600px) {
+        .grid-item {
+          padding-bottom: 25px;
+          font-size: 20px;
+        }
+        .grid {
+          max-width: 75%;
+        }
         #status {
           font-size: 18px;
         }
@@ -102,57 +132,77 @@
 
         #board {
             width: 95%;
-            padding-bottom: 95%;
         }
 
-        #chatiframe1container {
+        #rightbar1container {
             display: none;
         }
 
-        #chatiframe2container {
+        #rightbar2container {
           display: block;
           width: 100%;
           height: 400px;
 
 
 
-          display: none;
         }
     }
     </style>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <script src="bootstrap.bundle.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <script src="chessground.min.js"></script>
+    <!--script src="chessground.min.js"></script-->
     <script src="chess.js"></script>
     <script src="cordova.js"></script>
     <script src="socket.io.min.js"></script>
+
+
+
+    <!--div>AD SENSE SCRIPT HERE</div-->
   </head>
   <body>
-    <div id="title" class="title">OXADREZ</div>
-    <br/>
-    <div id="status">Procurando Atualizações do app</div>
-    <br/>
-    <br/>
+    <div id="title" class="title"><img src="img/logobanner.png" width="130" height="65"></div>
+    <div id="status">Carregando...</div>
 
-    <div style="display: flex; font-size: 15px; justify-content: center">Usuário (1000) <div class="playertimer" id="othertime">30:00</div></div>
-    <div id="piececaptured0" style="font-size: 30px; text-align: center;">|</div>
-    <div style="display: flex; flex-grow: 1; justify-content: center;"><div id="board"></div><div id="chatiframe1container"><iframe style="width: 100%; height:100%;" src=""></iframe></div></div>
-    <div style="display: flex; font-size: 15px; justify-content: center;">Usuário (1000) <div class="playertimer" id="yourtime">30:00</div></div>
-    <div id="piececaptured1" style="font-size: 30px; text-align: center;">|</div>
-    <br/>
-    <br/>
-    <div id="chatiframe2container"><iframe style="width: 100%; height: 100%;" src=""></iframe></div>
-    <!--button id="create-room">Create Room</button> <br/> <br/>
-    <button id="join-room">Join Room</button> <br/> <br/-->
-    
-    <div id="promotion" style="display: none;">
-        
+    <div id="gameStartedUI" style="display: none;">
+      <div style="display: flex; font-size: 15px; justify-content: center"><span id="otherusername"></span> (<span id="otherelo"></span>) <div class="playertimer rounded bg-body-secondary">🕒</i><span id="othertime">30:00</span></div><div id="piececaptured0" style="font-size: 30px; text-align: center;">|</div></div>
+      <div style="display: flex; flex-grow: 1; justify-content: center;">
+        <div style="display: contents;">
+          <div id="toppocket"></div>
+          <div class="ratio ratio-1x1" id="board"></div>
+          <div id="bottompocket"></div>
+        </div>
+        <div id="rightbar1container"></div>
+      </div>
+      <div style="display: flex; font-size: 15px; justify-content: center;"><span id="yourusername"></span> (<span id="yourelo"></span>) <div class="playertimer rounded bg-body-secondary">🕒</i><span id="yourtime">30:00</span></div><div id="piececaptured1" style="font-size: 30px; text-align: center;">|</div></div>
+      <br/>
+      <br/>
+      <div id="rightbar2container"></div>
+      <!--button id="create-room">Create Room</button> <br/> <br/>
+      <button id="join-room">Join Room</button> <br/> <br/-->
+      
+      <div id="promotion" style="display: none;">
+          
+      </div>
     </div>
-    <script>
-        document.addEventListener('deviceready', function() {
 
-        });
+    <script>
+      var ChessgroundJS = null;
+      var ffish = null;
     </script>
-    <script src="chesslogic.js"></script>
+    <script type="module">
+      import { Chessground } from "./chessgroundx/chessground.js"
+      ChessgroundJS = Chessground;
+    </script>
+    <script type="module">
+      import Module from "./ffish-es6/ffish.js"
+      new Module().then(loadedModule => {
+          ffish = loadedModule;
+          console.log(`initialized ${ffish} ${loadedModule}`);
+      });
+    </script>
+
+    <script src="onlinechesslogic.js"></script>
     <script>
       function shareURL(message, url, chooserTitle) {
           window.plugins.socialsharing.shareWithOptions({
@@ -162,9 +212,8 @@
           });
       }
 
-
-      var app_version = '0.5';
-      var socket = io('https://oxadrez.com');
+      //var app_version = '0.5';
+      var socket = null;
       let roomId = null;
 
       var yourTime = 300;
@@ -182,61 +231,28 @@
       socket.emit('makeMove', {room: roomId, move});
     }
 
+    function quickMatch(time) {
+      window.localStorage.setItem('username', document.getElementById('username').value);
+      socket.emit('setUsername', document.getElementById('username').value);
+      socket.emit('quickMatch', time);
+      document.getElementById('status').innerHTML = `Procurando Partida...`;
+    }
 
-    socket.on('connect', () => {
-        if (roomId !== null) {
-            socket.emit('joinRoom', roomId);
-            return;
-        }
-      document.getElementById('status').innerHTML = 
-      `
-      <button onclick="socket.emit('quickMatch', 20); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (20s)</button><br/>
-      <button onclick="socket.emit('quickMatch', 60); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (1min)</button><br/>
-      <button onclick="socket.emit('quickMatch', 120); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (2min)</button><br/>
-      <button onclick="socket.emit('quickMatch', 300); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (5min)</button><br/>
-      <button onclick="socket.emit('quickMatch', 600); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (10min)</button><br/>
-      <button onclick="socket.emit('quickMatch', 900); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (15min)</button><br/>
-      <button onclick="socket.emit('quickMatch', 1800); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (30min)</button><br/>
-      <button onclick="socket.emit('quickMatch', 3600); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (1h)</button><br/>
-      <button onclick="socket.emit('quickMatch', 7200); document.getElementById('status').innerHTML = 'Procurando Partida...'">Nova Partida (2h)</button><br/>
-      <button onclick="socket.emit('createRoom');">Jogar com um amigo</button><br/>
-      <br/><a href="/downloadandroid">Baixar Aplicativo</a>`;
-    });
+      function playWithAFriend() {
+        window.localStorage.setItem('username', document.getElementById('username').value);
+        socket.emit('setUsername', document.getElementById('username').value);
 
-
-    socket.on('joinPermitted', (room, turn, ytime, otime) => {
-        roomId = room;
-        StartGame(turn);
-        yourTime = ytime;
-        otherTime = otime;
-        document.getElementById('title').innerHTML += ` - <a href="https://oxadrez.com/room/${roomId}"> Jogo #${roomId}</a>`;
-    });
-
-
-    socket.on('moveMade', (move, ytime, otime) => {
-        moveMade(move);
-        yourTime = ytime;
-        otherTime = otime;
-    });
-
-    socket.on('gameOver', () => {
-        gameOver();
-    });
-
-    socket.on('roomCreated', (roomId) => {
-          document.getElementById('status').innerHTML = `Sala criada! Copie esse link: <br/> <a onclick="shareURL('Link do desafio xadrez', 'https://oxadrez.com/room/${roomId}', 'OXADREZ - Compartilhar Desafio')">https://oxadrez.com/room/${roomId}`;
-      });
-
-    socket.on('timeOver', (winnerColor) => {
-      let winner = 'Empate';
-
-      winner = winnerColor === 'w' ? 'Vitória das pretas' : 'Vitória das Brancas';
-
-      document.getElementById('status').innerHTML = winner + `<button onclick="window.location.href = window.location.href;">RECARREGAR</button>`;
-
-      localStorage.setItem('lastGamePgn', game.pgn());
-
-    });
+        socket.emit('createRoom');
+        document.getElementById('status').innerHTML = `Procurando Partida...`;
+      }
+      
+    let yourelo = window.localStorage.getItem('yourelo');
+    if (!yourelo) {
+      yourelo = 500;
+    }
+    if (yourelo < 0) {
+      yourelo = 0;
+    }
 
       function updateTime() {
         if (!gamestarted) {
@@ -266,13 +282,124 @@
       }
 
       setInterval(() => {
-        if (game.turn() == yourturn) {
-          yourTime -= 0.1;
-        }else{
-          otherTime -= 0.1;
-        }
-        updateTime();
+        try {
+
+          if (gamestarted && game.turn() == (yourturn == "w")) {
+            yourTime -= 0.1;
+          }else{
+            otherTime -= 0.1;
+          }
+          updateTime();
+        }catch{}
       }, 100);
+
+      function onFfishInit() {
+          socket = io('https://oxadrez.com');
+
+          socket.on('connect', () => {
+            socket.emit('setelo', yourelo);
+            if (roomId !== null) {
+                socket.emit('joinRoom', roomId);
+                return;
+            }
+            document.getElementById("status").remove();
+            document.getElementById(`rightbar${(window.innerWidth > 600 ? 1 : 2)}container`).innerHTML = `<div id="status"></div>`;
+            document.getElementById('gameStartedUI').style.display = "block";
+            board = new ChessgroundJS(document.getElementById("board"), chessgroundconfig)
+
+            document.getElementById('status').innerHTML = 
+            `
+            <input id="username" placeholder="Nome de Usuário"></input> <br/> <br/>
+            <h2>Nova Partida</h2>
+            <div class="grid">
+            <button class="grid-item" onclick="quickMatch(20);">20s</button>
+            <button class="grid-item" onclick="quickMatch(60);">1min</button>
+            <button class="grid-item" onclick="quickMatch(120);">2min</button>
+            <button class="grid-item" onclick="quickMatch(300);">5min</button>
+            <button class="grid-item" onclick="quickMatch(600);">10min</button>
+            <button class="grid-item" onclick="quickMatch(900);">15min</button>
+            <button class="grid-item" onclick="quickMatch(1800);">30min</button>
+            <button class="grid-item" onclick="quickMatch(3600);">1h</button>
+            <button class="grid-item" onclick="quickMatch(7200);">2h</button>
+            </div>
+            <br/>
+
+            <div style="font-size: 30px;">Jogar com um amigo</div>
+            <div class="grid">
+            <button onclick="socket.emit('createRoom');">Xadrez</button>
+            <button onclick="socket.emit('createRoom', 'racingkings');"> Corrida</button>
+            <button onclick="socket.emit('createRoom', '3check');"> 3 Xeques</button>
+            <button onclick="socket.emit('createRoom', 'antichess');"> Anti-Xadrez</button>
+            <button onclick="socket.emit('createRoom', 'horde');"> Horda</button>
+            <button onclick="socket.emit('createRoom', 'threekings');"> Três reis</button>
+            <button onclick="socket.emit('createRoom', 'kingofthehill');"> Rei central</button>
+            </div>
+            <br/><a href="/downloadandroid">Baixar Aplicativo</a>
+            `;
+            if (window.localStorage.getItem('username')) {
+              document.getElementById('username').value = window.localStorage.getItem('username');
+            }
+          });
+
+
+        socket.on('joinPermitted', (room, turn, ytime, otime, yelo, oelo, yusername, ousername, fenCode, variantname) => {
+            roomId = room;
+            variant = variantname;
+            StartGame(turn);
+            //game = new Chess(fenCode);
+            board.set({
+              fen: fenCode,
+              movable: {
+                dests: getDests(),
+              },
+              dimensions: getDimensions()
+            });
+            yourTime = ytime;
+            otherTime = otime;
+            document.getElementById('title').innerHTML += ` - <a href="https://oxadrez.com/room/${roomId}"> Jogo #${roomId}</a>`;
+            document.getElementById('yourelo').innerHTML = `${yelo}`;
+            document.getElementById('otherelo').innerHTML = `${oelo}`;
+            document.getElementById('yourusername').innerHTML = `${yusername}`;
+            document.getElementById('otherusername').innerHTML = `${ousername}`;
+        });
+
+
+        socket.on('moveMade', (move, ytime, otime) => {
+            moveMade(move);
+            yourTime = ytime;
+            otherTime = otime;
+        });
+
+        socket.on('gameOver', () => {
+            gameOver();
+
+            let elochange = 0;
+
+            if (game.isCheckmate()) {
+                  elochange = game.turn() === "w" ? -5 : 5;
+            }
+
+            yourelo += elochange;
+            window.localStorage.setItem('yourelo', yourelo);
+
+            localStorage.setItem('lastGamePgn', game.pgn());
+        });
+
+        socket.on('roomCreated', (roomId) => {
+              document.getElementById('status').innerHTML = `Sala criada! Copie esse link: <br/> <a onclick="shareURL('Link do desafio xadrez', 'https://oxadrez.com/room/${roomId}', 'OXADREZ - Compartilhar Desafio')">https://oxadrez.com/room/${roomId}`;
+          });
+
+        socket.on('timeOver', (winnerColor) => {
+          let winner = 'Empate';
+
+          winner = winnerColor === 'w' ? 'Vitória das pretas' : 'Vitória das Brancas';
+
+          document.getElementById('status').innerHTML = winner + `<button onclick="window.location.href = window.location.href;">RECARREGAR</button>`;
+
+          localStorage.setItem('lastGamePgn', game.pgn());
+
+        });
+      }
     </script>
 
   </body>

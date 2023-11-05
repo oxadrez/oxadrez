@@ -1,3 +1,4 @@
+var variant = "chess";
 var selectedpremove = null;
 var gamestarted = false;
 var yourturn = 'w';
@@ -106,7 +107,7 @@ const chessgroundconfig = {
                 to: dest,
                 promotion: promotion
             });
-        
+
             // was this a legal move?
             if (moveResult) {
                 if (moveResult.san.includes('=')) {
@@ -134,7 +135,7 @@ const chessgroundconfig = {
 
 };
 
-board = Chessground(document.getElementById('board'), chessgroundconfig);
+board = ChessgroundJS(document.getElementById('board'), chessgroundconfig);
 
 board.set({
     fen: game.fen()
@@ -148,7 +149,13 @@ function getDests() {
             let legalMoves = game.moves({ square: (letter + number), verbose: true });
             let legalMovesFormatted = [];
             legalMoves.forEach(legalMove => {
-                legalMovesFormatted.push(legalMove.to);
+                if (variant == "racingkings" && (legalMove.san.includes("+") || legalMove.san.includes("#"))) {
+
+                }else if (false) {
+
+                }else{
+                    legalMovesFormatted.push(legalMove.to);
+                }
             });
             moves.set((letter + number), legalMovesFormatted);
         }
@@ -156,11 +163,11 @@ function getDests() {
     return moves;
 }
 
-board = Chessground(document.getElementById('board'), chessgroundconfig);
+board = ChessgroundJS(document.getElementById('board'), chessgroundconfig);
 game = new Chess();
 
 function moveMade(move) {
-    
+
     let moveinfo = game.move(move);
 
     if (moveinfo) {
@@ -194,7 +201,7 @@ function moveMade(move) {
     }, 3000);
 
     board.set({check: (game.isCheck() ? (game.turn() == "w" ? 'white' : 'black') : false)});
-    
+
     if (game.turn() == yourturn) {
         if (selectedpremove) {
             const moveinfo2 = game.move(selectedpremove);
@@ -209,7 +216,7 @@ function moveMade(move) {
         fen: game.fen()
     });
 
-    
+
     updateStatus();
 };
 
@@ -235,11 +242,11 @@ function gameOver() {
 
     localStorage.setItem('lastGamePgn', game.pgn());
 
-    
+
 }
 function StartGame(turn) {
     game = new Chess();
-    board = Chessground(document.getElementById('board'), chessgroundconfig);
+    board = ChessgroundJS(document.getElementById('board'), chessgroundconfig);
     gamestarted = true;
     yourturn = turn;
     if (yourturn == 'b') {

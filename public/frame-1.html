@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="chessground.base.min.css">
+  <meta charset="utf-8" />
+  <link rel="icon" href="/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>OXADREZ</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter%3A400"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro%3A400"/>
+  <link rel="stylesheet" href="./styles/frame-1.css"/>
+  <style>
+    #board {
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%;
+      margin: 20px 0;
+      border: 1px solid #333; 
+    }
+    #status {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="frame-1-7yk">
+  <div class="auto-group-hyyv-akr">
+    <p class="usurio-1000-5jY"><span id="otherusername"></span> (<span id="otherelo"></span>)</p>
+    <div class="auto-group-sqb8-TVC">
+      <img class="r-1-KGW" src="./assets/r-1.png"/>
+      <p class="item-30-00-MDC">
+      <span id="othertime"></span>
+      <br/>
+      
+      </p>
+    </div>
+  </div>
+  <div id="status"></div>
+  <div id="promotion" style="display: none;"></div>
+  <div class="auto-group-dgbk-9uk"><div id="board"></div></div>
+  <div class="auto-group-61tv-N1p">
+    <p class="usurio-1000-p8i"><span id="yourusername"></span> (<span id="yourelo"></span>)</p>
+    <div class="auto-group-5a18-ThU">
+      <img class="r-2-Yiv" src="./assets/r-2.png"/>
+      <p class="item-30-00-zav">
+      <span id="yourtime"></span>
+      <br/>
+      
+      </p>
+    </div>
+  </div>
+</div>
+  <script src="chessground.min.js"></script>
+  <script src="chess.js"></script>
+  <script src="socket.io.min.js"></script>
+  <script src="chesslogic.js"></script>
+  <script>
+    function shareURL(message, url, chooserTitle) {
+        window.plugins.socialsharing.shareWithOptions({
+            message,
+            url,
+            chooserTitle,
+        });
+    }
+
+
+    var app_version = '0.5';
+    var socket = io('https://oxadrez.com');
+    let roomId = null;
+
+    var yourTime = 300;
+    var otherTime = 300;
+
+    function getIdFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id');
+    }
+
+  // Obter o 'id' da URL
+  roomId = getIdFromURL();
+
+  function onUserMoveEvent(move) {
+    socket.emit('makeMove', {room: roomId, move});
+  }
+
+
+  socket.on('connect', () => {
+     socket.emit('setelo', yourelo);
+      if (roomId !== null) {
+          socket.emit('joinRoom', roomId);
+          return;
+      }
+    document.getElementById('status').innerHTML = 
+    `
+    <input id="username" placeholder="Nome de Usuário"></input> <br/> <br/>
+    <button onclick="quickMatch(20);">Nova Partida (20s)</button><br/>
+    <button onclick="quickMatch(60);">Nova Partida (1min)</button><br/>
+    <button onclick="quickMatch(120);">Nova Partida (2min)</button><br/>
+    <button onclick="quickMatch(300);">Nova Partida (5min)</button><br/>
+    <button onclick="quickMatch(600);">Nova Partida (10min)</button><br/>
+    <button onclick="quickMatch(900);">Nova Partida (15min)</button><br/>
+    <button onclick="quickMatch(1800);">Nova Partida (30min)</button><br/>
+    <button onclick="quickMatch(3600);">Nova Partida (1h)</button><br/>
+    <button onclick="quickMatch(7200);">Nova Partida (2h)</button><br/>
+    <button onclick="">Jogar com um amigo</button><br/>
+    <br/><a href="/downloadandroid">Baixar Aplicativo</a>`;
+    if (window.localStorage.getItem('username')) {
+      document.getElementById('username').value = window.localStorage.getItem('username');
+    }
+  });
+
+  function quickMatch(time) {
+    window.localStorage.setItem('username', document.getElementById('username').value);
+    socket.emit('setUsername', document.getElementById('username').value);
+    socket.emit('quickMatch', time);
+    document.getElementById('status').innerHTML = `Procurando Partida...`;
+  }
+
+    function playWithAFriend() {
+      window.localStorage.setItem('username', document.getElementById('username').value);
+      socket.emit('setUsername', document.getElementById('username').value);
+
+      socket.emit('createRoom');
+      document.getElementById('status').innerHTML = `Procurando Partida...`;
+    }
+
+  let yourelo = window.localStorage.getItem('yourelo');
+  if (!yourelo) {
+    yourelo = 500;
+  }
+  if (yourelo < 0) {
+    yourelo = 0;
+  }
+
+
+  socket.on('joinPermitted', (room, turn, ytime, otime, yelo, oelo, yusername, ousername) => {
+      roomId = room;
+      StartGame(turn);
+      yourTime = ytime;
+      otherTime = otime;
+      document.getElementById('title').innerHTML += ` - <a href="https://oxadrez.com/room/${roomId}"> Jogo #${roomId}</a>`;
+      document.getElementById('yourelo').innerHTML = `${yelo}`;
+      document.getElementById('otherelo').innerHTML = `${oelo}`;
+      document.getElementById('yourusername').innerHTML = `${yusername}`;
+      document.getElementById('otherusername').innerHTML = `${ousername}`;
+  });
+
+
+  socket.on('moveMade', (move, ytime, otime) => {
+      moveMade(move);
+      yourTime = ytime;
+      otherTime = otime;
+  });
+
+  socket.on('gameOver', () => {
+      gameOver();
+
+      let elochange = 0;
+
+      if (game.isCheckmate()) {
+            elochange = game.turn() === yourturn ? -5 : 5; 
+      }
+
+      yourelo += elochange;
+      window.localStorage.setItem('yourelo', yourelo);
+
+      localStorage.setItem('lastGamePgn', game.pgn());
+  });
+
+  socket.on('roomCreated', (roomId) => {
+        document.getElementById('status').innerHTML = `Sala criada! Copie esse link: <br/> <a onclick="shareURL('Link do desafio xadrez', 'https://oxadrez.com/room/${roomId}', 'OXADREZ - Compartilhar Desafio')">https://oxadrez.com/room/${roomId}`;
+    });
+
+  socket.on('timeOver', (winnerColor) => {
+    let winner = 'Empate';
+
+    winner = winnerColor === 'w' ? 'Vitória das pretas' : 'Vitória das Brancas';
+
+    document.getElementById('status').innerHTML = winner + `<button onclick="window.location.href = window.location.href;">RECARREGAR</button>`;
+
+    localStorage.setItem('lastGamePgn', game.pgn());
+
+  });
+
+    function updateTime() {
+      if (!gamestarted) {
+        return;
+      }
+      var yourTimeWithoutDecimals = Math.ceil(yourTime);
+      var yourTimeMinutes = Math.floor(yourTimeWithoutDecimals / 60);
+      const yourTimeHours = Math.floor(yourTimeMinutes / 60);
+      yourTimeMinutes = yourTimeMinutes % 60;
+      if (yourTimeHours > 0) {
+        document.getElementById("yourtime").innerHTML = `${yourTimeHours}:${(yourTimeMinutes % 60).toString().padStart(2, '0')}:${(yourTimeWithoutDecimals % 60).toString().padStart(2, '0')}`;
+      }else{
+        document.getElementById("yourtime").innerHTML = yourTimeMinutes + ":" + (yourTimeWithoutDecimals % 60).toString().padStart(2, '0');
+      }
+
+
+      var otherTimeWithoutDecimals = Math.ceil(otherTime);
+
+      var otherTimeMinutes = Math.floor(otherTimeWithoutDecimals / 60);
+      const otherTimeHours = Math.floor(otherTimeMinutes / 60);
+      otherTimeMinutes = otherTimeMinutes % 60;
+      if (otherTimeHours > 0) {
+        document.getElementById("othertime").innerHTML = `${otherTimeHours}:${(otherTimeMinutes % 60).toString().padStart(2, '0')}:${(otherTimeWithoutDecimals % 60).toString().padStart(2, '0')}`;
+      }else{
+        document.getElementById("othertime").innerHTML = otherTimeMinutes + ":" + (otherTimeWithoutDecimals % 60).toString().padStart(2, '0');
+      }
+    }
+
+    setInterval(() => {
+      if (game.turn() == yourturn) {
+        yourTime -= 0.1;
+      }else{
+        otherTime -= 0.1;
+      }
+      updateTime();
+    }, 100);
+  </script>
+</body>

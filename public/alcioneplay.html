@@ -152,19 +152,21 @@
 
         const network = new brain.NeuralNetwork();
 
+        //black to play
+        var trainarrayconverted = [
+          
+        ];
 
         var trainarray = [];
 
-        var trainarrayconverted = [];
-
-        trainarray.forEach((traindata) => {
+        /*trainarray.forEach((traindata) => {
           var jsontraindataconverted = {input: fenToArray(traindata.fen), output: {}};
           jsontraindataconverted.output[traindata.move] = 1;
-          trainarrayconverted.push(jsontraindataconverted)
+          trainarrayconverted.push(jsontraindataconverted);
         });
 
 
-        //network.train(trainarrayconverted);
+        network.train(trainarrayconverted);*/
         fetch('alcioneplaytrain.json')
             .then(response => response.text())
             .then(data => {
@@ -174,6 +176,7 @@
 
         function onUserMoveEvent(move) {
             setTimeout(() => {
+
                 game.move(move);
                 botMove(game.fen());
             }, 500);
@@ -189,31 +192,34 @@
         
         // Função para retornar movimento
         function botMove(position) {
-          var resultdata = brain.likely(fenToArray(position), network);
+          var resultdata = network.run(fenToArray(position));
 
           var choosedbestmove = '';
 
-          /*var bestMoves = Object.keys(resultdata);
+          var bestMoves = Object.keys(resultdata);
           bestMoves.sort(function(a, b) {
             return resultdata[a] > resultdata[b];
-          });*/
+          });
 
-          //for (let index = 0; index < bestMoves.length; index++) {
-            const bestMove = resultdata;//bestMoves[index];
-            const moveResult = game.move({
-              from: bestMove[0] + bestMove[1],
-              to: bestMove[2] + bestMove[3],
-              promotion: 'q'
-            });
+          for (let index = 0; index < bestMoves.length; index++) {
+            const bestMove = bestMoves[index];
+            try {
+              
+              const moveResult = game.move({
+                from: bestMove[0] + bestMove[1],
+                to: bestMove[2] + bestMove[3],
+                promotion: 'q'
+              });
 
             
             if (moveResult !== null) {
-              choosedbestmove = bestMove;
-              game.undo();
-              moveMade(moveResult.san);
-              //break;
+                choosedbestmove = bestMove;
+                game.undo();
+                moveMade(moveResult.san);
+                break;
             }
-          //}
+            }catch{}
+          }
           if (choosedbestmove == '') {
               const moveResult2 = game.move(game.moves()[(Math.floor(Math.random() * game.moves().length))]);
               game.undo();
@@ -224,22 +230,22 @@
 
         function fenToArray(fen) {
           const pieceMap = {
-            '1': 0, // Casa vazia
-            'r': 0.2, // Torre preta
-            'n': 0.1, // Cavalo preto
-            'b': 0.15, // Bispo preto
-            'q': 0.25, // Rainha preta
-            'k': 0.3, // Rei preto
-            'p': 0.05, // Peão preto
-            'R': 0.9, // Torre branca
-            'N': 0.8, // Cavalo branco
-            'B': 0.85, // Bispo branco
-            'Q': 0.95, // Rainha branca
-            'K': 1, // Rei branco
-            'P': 0.75, // Peão branco
+            '1': "", // Casa vazia
+            'r': "r", // Torre preta
+            'n': "n", // Cavalo preto
+            'b': "b", // Bispo preto
+            'q': "q", // Rainha preta
+            'k': "k", // Rei preto
+            'p': "p", // Peão preto
+            'R': "R", // Torre branca
+            'N': "N", // Cavalo branco
+            'B': "B", // Bispo branco
+            'Q': "Q", // Rainha branca
+            'K': "K", // Rei branco
+            'P': "P", // Peão branco
           };
 
-          const boardArray = new Array(64).fill(0);
+          const boardArray = {};
 
           const rows = fen.split(' ')[0].split('/');
 
@@ -251,7 +257,7 @@
             for (let j = 0; j < row.length; j++) {
               const char = row[j];
               if (isNaN(char)) {
-                boardArray[rowIdx * 8 + colIdx] = pieceMap[char];
+                boardArray[(rowIdx * 8 + colIdx).toString()] = pieceMap[char];
                 colIdx++;
               } else {
                 colIdx += parseInt(char, 10);

@@ -1,47 +1,50 @@
 /** Embedded SVGs for all chess pieces */
-.cg-wrap piece.pawn.white {
+.cg-wrap piece.p-piece.white {
   background-image: url('../img/chesspieces/lichess/wP.png');
 }
-.cg-wrap piece.bishop.white {
+.cg-wrap piece.b-piece.white {
   background-image: url('../img/chesspieces/lichess/wB.png');
 }
-.cg-wrap piece.knight.white {
+.cg-wrap piece.n-piece.white {
   background-image: url('../img/chesspieces/lichess/wN.png');
 }
-.cg-wrap piece.rook.white {
+.cg-wrap piece.r-piece.white {
   background-image: url('../img/chesspieces/lichess/wR.png');
 }
-.cg-wrap piece.queen.white {
+.cg-wrap piece.q-piece.white {
   background-image: url('../img/chesspieces/lichess/wQ.png');
 }
-.cg-wrap piece.king.white {
+.cg-wrap piece.k-piece.white {
   background-image: url('../img/chesspieces/lichess/wK.png');
 }
-.cg-wrap piece.pawn.black {
+.cg-wrap piece.p-piece.black {
   background-image: url('../img/chesspieces/lichess/bP.png');
 }
-.cg-wrap piece.bishop.black {
+.cg-wrap piece.b-piece.black {
   background-image: url('../img/chesspieces/lichess/bB.png');
 }
-.cg-wrap piece.knight.black {
+.cg-wrap piece.n-piece.black {
   background-image: url('../img/chesspieces/lichess/bN.png');
 }
-.cg-wrap piece.rook.black {
+.cg-wrap piece.r-piece.black {
   background-image: url('../img/chesspieces/lichess/bR.png');
 }
-.cg-wrap piece.queen.black {
+.cg-wrap piece.q-piece.black {
   background-image: url('../img/chesspieces/lichess/bQ.png');
 }
-.cg-wrap piece.king.black {
+.cg-wrap piece.k-piece.black {
   background-image: url('../img/chesspieces/lichess/bK.png');
 }
 
 /** Interactive board square colors */
 cg-board {
   background-color: #f0d9b5;
-  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4PSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgogICAgIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+CjxnIGlkPSJhIj4KICA8ZyBpZD0iYiI+CiAgICA8ZyBpZD0iYyI+CiAgICAgIDxnIGlkPSJkIj4KICAgICAgICA8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBpZD0iZSIgb3BhY2l0eT0iMCIvPgogICAgICAgIDx1c2UgeD0iMSIgeT0iMSIgaHJlZj0iI2UiIHg6aHJlZj0iI2UiLz4KICAgICAgICA8cmVjdCB5PSIxIiB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBpZD0iZiIgb3BhY2l0eT0iMC4yIi8+CiAgICAgICAgPHVzZSB4PSIxIiB5PSItMSIgaHJlZj0iI2YiIHg6aHJlZj0iI2YiLz4KICAgICAgPC9nPgogICAgICA8dXNlIHg9IjIiIGhyZWY9IiNkIiB4OmhyZWY9IiNkIi8+CiAgICA8L2c+CiAgICA8dXNlIHg9IjQiIGhyZWY9IiNjIiB4OmhyZWY9IiNjIi8+CiAgPC9nPgogIDx1c2UgeT0iMiIgaHJlZj0iI2IiIHg6aHJlZj0iI2IiLz4KPC9nPgo8dXNlIHk9IjQiIGhyZWY9IiNhIiB4OmhyZWY9IiNhIi8+Cjwvc3ZnPg==');
+  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDIwMCA4MDAgODAwIj4KPGcgaWQ9ImJyb3duLWJvYXJkIj4KPGcgaWQ9IkxpZ2h0IiBmaWxsPSIjZjBkOWI1Ij4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iMTAwMCIvPgo8L2c+CjxnIGlkPSJGcmFtZSIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjEwMDAiLz4KPC9nPgo8ZyBpZD0iRGFyayIgZmlsbD0iI2I1ODg2MyI+CjxnIGlkPSJyYXoiPgo8ZyBpZD0iZHZhIj4KPGcgaWQ9InRyaSI+CjxnIGlkPSJjaGUiPgo8cmVjdCB4PSIxMDAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIi8+CjxyZWN0IHg9IjMwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiLz4KPHJlY3QgeD0iNTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPgo8cmVjdCB4PSI3MDAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIi8+CjxyZWN0IHg9IjkwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiLz4KPHJlY3QgeD0iMTEwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiLz4KPC9nPgo8dXNlIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMDAsMTAwKSIgeGxpbms6aHJlZj0iI2NoZSIvPgo8L2c+Cjx1c2UgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwyMDApIiB4bGluazpocmVmPSIjdHJpIi8+CjwvZz4KPHVzZSB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDQwMCkiIHhsaW5rOmhyZWY9IiNkdmEiLz4KPC9nPgo8dXNlIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsNjAwKSIgeGxpbms6aHJlZj0iI3JheiIvPgo8L2c+CjwvZz4KPC9zdmc+Cg==');
 }
 
+.defaultboard.board7x7 cg-board {
+  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2aWV3Qm94PSIwIDMwMCA3MDAgNzAwIj4KPGcgaWQ9ImJyb3duLWJvYXJkIj4KPGcgaWQ9IkxpZ2h0IiBmaWxsPSIjZjBkOWI1Ij4KPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iMTAwMCIvPgo8L2c+CjxnIGlkPSJGcmFtZSIgZmlsbD0ibm9uZSI+CjxyZWN0IHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjEwMDAiLz4KPC9nPgo8ZyBpZD0iRGFyayIgZmlsbD0iI2I1ODg2MyI+CjxnIGlkPSJyYXoiPgo8ZyBpZD0iZHZhIj4KPGcgaWQ9InRyaSI+CjxnIGlkPSJjaGUiPgo8cmVjdCB4PSIxMDAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIi8+CjxyZWN0IHg9IjMwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiLz4KPHJlY3QgeD0iNTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIvPgo8cmVjdCB4PSI3MDAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIi8+CjxyZWN0IHg9IjkwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiLz4KPHJlY3QgeD0iMTEwMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiLz4KPC9nPgo8dXNlIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMDAsMTAwKSIgeGxpbms6aHJlZj0iI2NoZSIvPgo8L2c+Cjx1c2UgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwyMDApIiB4bGluazpocmVmPSIjdHJpIi8+CjwvZz4KPHVzZSB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDQwMCkiIHhsaW5rOmhyZWY9IiNkdmEiLz4KPC9nPgo8dXNlIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsNjAwKSIgeGxpbms6aHJlZj0iI3JheiIvPgo8L2c+CjwvZz4KPC9zdmc+Cg==');
+}
 cg-board square.move-dest {
   background: radial-gradient(rgba(20, 85, 30, 0.5) 22%, #208530 0, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 0);
 }

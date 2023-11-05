@@ -2,10 +2,16 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const { Chess } = require('chess.js');
+const ffish = require('ffish');
 const db = require('./database');
 
 db.delete("nextRoomId");
 db.empty();
+
+ffish['onRuntimeInitialized'] = () => {
+ffish.loadVariantConfig(require('./variants.js'));
+}
+
 
 
 //
@@ -42,6 +48,11 @@ if (dbNextRoomId) {
 
 
 const CLOCK_TIME = 1800;
+
+
+var clientsInfo = {};
+
+const RATING_MAX_OFFSET = 150;
 
 const androiddownloadlink = "https://drive.google.com/file/d/152-GotbvlDBNjJFW5505GW87NB1zXcW_/view?usp=drive_link";
 
@@ -85,16 +96,24 @@ var waitingrooms = {
 
 io.on('connection', socket => {
 
-  socket.on('createRoom', async () => {
+  clientsInfo[socket.id] = {};
+
+  clientsInfo[socket.id].elo = 500;
+  clientsInfo[socket.id].username = "Usuário";
+
+  socket.on('createRoom', async (variantname) => {
+    if (!variantname) {
+      variantname = "chess";
+    }
     try {
       if (!rooms[nextRoomId]) {
-        rooms[nextRoomId] = { started: false, game: new Chess(), white: socket };
+        rooms[nextRoomId] = { started: false, variantname: variantname, game: new ffish.Board(variantname), white: socket };
         //rooms[nextRoomId].game.header('Event', 'Normal Chess Game', 'Site', 'https://oxadrez.com', 'Variant', 'Standart', 'TimeControl', `${CLOCK_TIME}+0`, 'White', `Usuário(1000)`, 'Black', `Usuário(1000)`);
         socket.emit('roomCreated', nextRoomId);
 
         nextRoomId += 1;
         db.set("nextRoomId", nextRoomId);
-        
+
       }
     } catch {
 
@@ -120,8 +139,8 @@ io.on('connection', socket => {
             }
           } catch { }
 
-          db.set(`room-${roomId}`, rooms[roomId].game.pgn());
-          
+          db.set(`room-${roomId}`, rooms[roomId].pgn);
+
           delete rooms[roomId];
         }
         if (rooms[roomId].white && rooms[roomId].white.id == socket.id) {
@@ -134,13 +153,14 @@ io.on('connection', socket => {
             }
           } catch { }
 
-          db.set(`room-${roomId}`, rooms[roomId].game.pgn());
-          
+          db.set(`room-${roomId}`, rooms[roomId].pgn);
+
           delete rooms[roomId];
 
         }
       });
     } catch { }
+    delete clientsInfo[socket.id];
   });
 
   socket.on('checkupdate', (app_version) => {
@@ -160,17 +180,16 @@ io.on('connection', socket => {
         waitingrooms[selectedtime.toString()].push(socket);
         while (waitingrooms[selectedtime.toString()].length >= 2) {
           roomId = nextRoomId;
-          rooms[roomId] = { started: true, game: new Chess(), white: waitingrooms[selectedtime.toString()][0], black: waitingrooms[selectedtime.toString()][1], whiteTime: selectedtime, blackTime: selectedtime };
+          rooms[roomId] = { started: true, variantname: "chess", game: new ffish.Board("chess"), white: waitingrooms[selectedtime.toString()][0], black: waitingrooms[selectedtime.toString()][1], whiteTime: selectedtime, blackTime: selectedtime };
           if (Math.random() < 0.5) {
-            rooms[roomId] = { started: true, game: new Chess(), white: waitingrooms[selectedtime.toString()][0], black: waitingrooms[selectedtime.toString()][1], whiteTime: selectedtime, blackTime: selectedtime };
+            rooms[roomId] = { started: true, variantname: "chess", game: new ffish.Board("chess"), white: waitingrooms[selectedtime.toString()][0], black: waitingrooms[selectedtime.toString()][1], whiteTime: selectedtime, blackTime: selectedtime };
           }
           //rooms[nextRoomId].game.header('Event', 'Normal Chess Game', 'Site', 'https://oxadrez.com', 'Variant', 'Standart', 'TimeControl', `${selectedtime}+0`, 'White', `Usuário(1000)`, 'Black', `Usuário(1000)`);
-          rooms[roomId].white.emit('joinPermitted', roomId, 'b', selectedtime, selectedtime);
-          rooms[roomId].black.emit('joinPermitted', roomId, 'w', selectedtime, selectedtime);
-
+          rooms[roomId].white.emit('joinPermitted', roomId, 'b', selectedtime, selectedtime, clientsInfo[rooms[roomId].white.id].elo, clientsInfo[rooms[roomId].black.id].elo, clientsInfo[rooms[roomId].white.id].username, clientsInfo[rooms[roomId].black.id].username, rooms[roomId].game.fen(), rooms[roomId].variantname);
+          rooms[roomId].black.emit('joinPermitted', roomId, 'w', selectedtime, selectedtime, clientsInfo[rooms[roomId].black.id].elo, clientsInfo[rooms[roomId].white.id].elo, clientsInfo[rooms[roomId].black.id].username, clientsInfo[rooms[roomId].white.id].username, rooms[roomId].game.fen(), rooms[roomId].variantname);
           nextRoomId += 1;
           db.set("nextRoomId", nextRoomId);
-          
+
 
 
           waitingrooms[selectedtime.toString()].splice(0, 2);
@@ -181,12 +200,12 @@ io.on('connection', socket => {
 
   socket.on('joinRoom', (roomId) => {
     if (!roomId || !rooms[roomId]) {
-      rooms[nextRoomId] = { started: false, game: new Chess(), white: socket };
+      rooms[nextRoomId] = { started: false, variantname: "chess", game: new ffish.Board("chess"), white: socket };
       socket.emit('roomCreated', nextRoomId);
 
       nextRoomId += 1;
       db.set("nextRoomId", nextRoomId);
-      
+
     } else if (!rooms[roomId].black) {
       rooms[roomId].black = socket;
       if (Math.random() < 0.5) {
@@ -198,8 +217,8 @@ io.on('connection', socket => {
         rooms[roomId].blackTime = CLOCK_TIME;
       }
       if (rooms[roomId]) {
-        rooms[roomId].white.emit('joinPermitted', roomId, 'b', CLOCK_TIME, CLOCK_TIME);
-        rooms[roomId].black.emit('joinPermitted', roomId, 'w', CLOCK_TIME, CLOCK_TIME);
+        rooms[roomId].white.emit('joinPermitted', roomId, 'b', CLOCK_TIME, CLOCK_TIME, clientsInfo[rooms[roomId].white.id].elo, clientsInfo[rooms[roomId].black.id].elo, clientsInfo[rooms[roomId].white.id].username, clientsInfo[rooms[roomId].black.id].username, rooms[roomId].game.fen(), rooms[roomId].variantname);
+        rooms[roomId].black.emit('joinPermitted', roomId, 'w', CLOCK_TIME, CLOCK_TIME, clientsInfo[rooms[roomId].black.id].elo, clientsInfo[rooms[roomId].white.id].elo, clientsInfo[rooms[roomId].black.id].username, clientsInfo[rooms[roomId].white.id].username, rooms[roomId].game.fen(), rooms[roomId].variantname);
         rooms[roomId].started = true;
       } else {
         socket.emit('joinDenied', roomId);
@@ -213,13 +232,27 @@ io.on('connection', socket => {
       if (!rooms[room] || !rooms[room].started) {
 
       } else {
-        if (rooms[room].game.turn() == 'w' && rooms[room].white.id == socket.id) return;
-        if (rooms[room].game.turn() == 'b' && rooms[room].black.id == socket.id) return;
+        if (rooms[room].game.turn() && rooms[room].white.id == socket.id) return;
+        if (!rooms[room].game.turn() && rooms[room].black.id == socket.id) return;
 
-        const result = rooms[room].game.move(move);
-        //rooms[room].game.setComment(`[% clk ${(rooms[room].game.turn() == 'w' ? rooms[room].blackTime : rooms[room].whiteTime)}]`);
+        //rooms[room].game.setComment(`[% clk ${(rooms[room].game.turn() == 'w' ? rooms[room].blackTime : rooms[room].whiteTime)}]`);    console.log(rooms[room].game.legalMovesSan());
+        if (rooms[room].game.legalMovesSan().includes(move.san)) {
+          rooms[room].game.pushSan(move.san);
 
-        if (result) {
+          if (!rooms[room].moves) {
+            rooms[room].moves = [move.san];
+          }else{
+            rooms[room].moves.push(move.san);
+          }
+
+          var outputpgn = "1. ";
+          rooms[room].moves.forEach((movetmp, indextmp) => {
+            outputpgn += movetmp + " ";
+            if ((indextmp % 2) == 1) {
+              outputpgn += `${(indextmp + 3) / 2}. `;
+            }
+          });
+          rooms[room].pgn = outputpgn;
 
           rooms[room].white.emit('moveMade', move, rooms[room].whiteTime, rooms[room].blackTime);
           rooms[room].black.emit('moveMade', move, rooms[room].blackTime, rooms[room].whiteTime);
@@ -227,9 +260,9 @@ io.on('connection', socket => {
           if (rooms[room].game.isGameOver()) {
             rooms[room].white.emit('gameOver');
             rooms[room].black.emit('gameOver');
-            db.set(`room-${roomId} `, rooms[roomId].game.pgn());
-            
-            delete rooms[roomId];
+            db.set(`room-${room} `, rooms[room].pgn);
+
+            delete rooms[room];
           }
         }
       }
@@ -244,14 +277,14 @@ io.on('connection', socket => {
 setInterval(() => {
   Object.keys(rooms).forEach((roomId) => {
     if (rooms[roomId].started) {
-      if (rooms[roomId].game.turn() == "b") {
+      if (!rooms[roomId].game.turn()) {
         rooms[roomId].whiteTime -= 0.1;
         if (rooms[roomId].whiteTime <= 0) {
           rooms[roomId].white.emit('timeOver', "b");
           rooms[roomId].black.emit('timeOver', "b");
 
-          db.set(`room-${roomId} `, rooms[roomId].game.pgn());
-          
+          db.set(`room-${roomId} `, rooms[roomId].pgn);
+
           delete rooms[roomId];
         }
       } else {
@@ -261,8 +294,8 @@ setInterval(() => {
           rooms[roomId].black.emit('timeOver', "w");
 
 
-          db.set(`room-${roomId} `, rooms[roomId].game.pgn());
-          
+          db.set(`room-${roomId} `, rooms[roomId].pgn);
+
           delete rooms[roomId];
         }
       }
