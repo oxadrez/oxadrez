@@ -152,7 +152,6 @@
     <script src="bootstrap.bundle.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <!--script src="chessground.min.js"></script-->
-    <script src="chess.js"></script>
     <script src="cordova.js"></script>
     <script src="socket.io.min.js"></script>
 
@@ -294,7 +293,7 @@
       }, 100);
 
       function onFfishInit() {
-          socket = io('https://oxadrez.erikreis.repl.co');
+          socket = io();
 
           socket.on('connect', () => {
             socket.emit('setelo', yourelo);

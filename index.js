@@ -1,7 +1,6 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const { Chess } = require('chess.js');
 const ffish = require('ffish');
 const db = require('./database');
 
@@ -10,6 +9,7 @@ db.empty();
 
 ffish['onRuntimeInitialized'] = () => {
 ffish.loadVariantConfig(require('./variants.js'));
+  console.log(ffish.variants())
 }
 
 
@@ -208,13 +208,13 @@ io.on('connection', socket => {
 
     } else if (!rooms[roomId].black) {
       rooms[roomId].black = socket;
+      rooms[roomId].whiteTime = CLOCK_TIME;
+      rooms[roomId].blackTime = CLOCK_TIME;
       if (Math.random() < 0.5) {
         const whitetemp = rooms[roomId].white;
         const blacktemp = rooms[roomId].black;
         rooms[roomId].white = blacktemp;
         rooms[roomId].black = whitetemp;
-        rooms[roomId].whiteTime = CLOCK_TIME;
-        rooms[roomId].blackTime = CLOCK_TIME;
       }
       if (rooms[roomId]) {
         rooms[roomId].white.emit('joinPermitted', roomId, 'b', CLOCK_TIME, CLOCK_TIME, clientsInfo[rooms[roomId].white.id].elo, clientsInfo[rooms[roomId].black.id].elo, clientsInfo[rooms[roomId].white.id].username, clientsInfo[rooms[roomId].black.id].username, rooms[roomId].game.fen(), rooms[roomId].variantname);
